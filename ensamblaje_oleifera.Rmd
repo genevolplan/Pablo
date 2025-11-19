@@ -1,0 +1,149 @@
+---
+title: "Ensamblaje de genoma nuclear y plastídico de *Moringa oleifra*"
+author: "Pablo Contreras Saavedra"
+date: "2025-11-19"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    toc: true
+    number_sections: true
+    toc_depth: '3'
+    css: styles.css
+  html_document:
+    toc: true
+    toc_depth: '3'
+    number_sections: true
+  word_document:
+    toc: true
+    toc_depth: '3'
+  pdf_document:
+    toc: true
+    toc_depth: '3'
+subtitle: Recopilación de análisis
+editor_options:
+  markdown:
+    wrap: 72
+
+link-citations: true
+always_allow_html: true
+---
+
+## Obtención de secuencias crudas aleatorias de *Moringa oleifera*
+
+Para la obtención de secuencias crudas aleatorias de esta especie, se hizo uso de la accesión **SRR34565303**, obtenida en el repositorio **SRA**. Se seleccionó aquella con un mayor longitud de bases y número de spots.
+
+![accesion](accesion.png)
+Como se indica en la imagen, se empleó la plataforma **PacBio Sequel II**.
+
+Para la extracción de un archivo fasta con las lecturas a partir de esta accesión, se empleó la herramienta **SRA toolkit**(), empléandose el siguiente comando:
+
+```{r}
+# prefetch SRR34565303 -O /home/kubuntu/apps/sratoolkit/filedump/SRR34565303
+```
+```{r}
+# fasterq-dump /home/kubuntu/apps/sratoolkit/filedump/SRR34565303
+```
+
+
+## Control de calidad 
+
+Para llevar a cabo el control de calidad de las secuencias crudas aleatorias extraídas, se empleará la herramienta **LongQC**, ideal para lecturas largas procedentes de proyectos de sencuenciación mediante la plataforma *PacBio*. Se analizaron los siguientes parámetros:
+
+### Whisker plot - Quality value medio en función de la longitud de la lectura.
+
+![](fig_longQC_sampleqc_average_qv.png)
+
+
+
+### Distribución de la cobertura 
+
+![](fig_longQC_sampleqc_coverage.png)
+
+
+### Whisker plot - cobertura con respecto a longitud de lecturas
+
+![](fig_longQC_sampleqc_coverage_over_read_length.png)
+### Distribución de la fracción de GC
+
+![](fig_longQC_sampleqc_gcfrac.png)
+
+### Distribución de las longitudes de lectura
+
+![](fig_longQC_sampleqc_length.png)
+
+### Frecuencia de fracciones de baja complejidad
+
+![](fig_longQC_sampleqc_masked_region.png)
+
+### Whisker plot del QV medio para lecturas normales y non-sense
+
+![](fig_longQC_sampleqc_olp_qv.png)
+
+### Analisis terminal de secuencias
+
+![](fig_longQC_sampleqc_terminal_analysis.png)
+
+
+
+## Ensamblaje de genoma mitocondrial mediante secuencias crudas aleatorias
+
+Partiendo del archivo en formato fasta obtenido mediante SRA toolkits, se realizó el ensamblaje del genoma mitocondrial empleando la herramienta **oatk()**.
+
+Para ello, se empleó el siguiente comando
+
+
+
+```{r}
+# oatk -k 1001 -c 30 -t 16 --nhmmscan /home/kubuntu/anaconda3/bin/nhmmscan -m /home/kubuntu/analysis/synology/Utilities/DBs/OatkDB/v20230210/angiosperm_mito.fam -p /home/kubuntu/analysis/synology/Utilities/DBs/OatkDB/v20230210/angiosperm_pltd.fam -o MORINGASTN /home/kubuntu/analysis/synology/M_oleifera_SRR34565303/SRR34565303.fastq.gz
+
+```
+
+
+Donde:
+
+-**k** representa el tamaño de cada syncmer. Se conservó el valor por defecto.
+
+-**c** representa el threshold de cobertura para cada syncmer. Se conservó el valor por defecto.
+
+-**t** representa el número de hilos destinados a realizar el ensamblaje. Dado que el ordenador empleado presentaba 20 hilos en total, se seleccionó una cantidad conservadora de 16.
+
+-**m** indica donde debe incluirse el archivo .fam correspondiente a la base de datos de genomas mitocondriales de angiospermas.
+
+-**p** indica donde debe incluirse el archivo -fam correspondiente a la base de datos de genomas plastídicos de angiospermas.
+
+-**o** especifica el prefijo de los archivos de salida.
+
+## Representación visual del ensamblaje del genoma plastídico
+
+A partir del archivo **.gfa** generado tras el ensamblaje, se obtuvo una representación gráfica del mismo mediante el programa **Bandage()**.
+
+![](moleifera_agraph_ptld.png)
+En este tipo de gráfica se representa información de 3 parámetros relevantes:
+
+- La **longitud** de una región de ensamblaje en pb.
+- El carácter **circularizado** o **lineal** de la misma, representado gráficamente.
+- La **cobertura media** de esta región.
+
+Con esta información, puede analizarse el resultado obtenido en la figura. El objeto obtenido en la parte inferior presenta la morfología usual esperada para un genoma plastídico, teniendo en cuenta que este presenta una **región larga de copia única (LSC)** representada por el bucle de mayor tamaño, una **región corta de copia única (SSC)** por el de menor, y **regiones repetidas inversas (IRs)** correspondientes a la zona central del gráfico, de 26535 pb.
+
+Se aprecia, no obstante, una región larga y aislada, de más de 160.000 pb y de carácter no circularizado. Esto supone una desviación del resultado esperado, por lo que para arrojar una interpretación se realizó un estudio de homología de esta región con respecto al genoma plastídico de referencia para *Moringa oleifera*.
+
+
+## Estudio de identidad entre ensamblaje del genoma plastídico de *Moringa oleifera* y genoma de plastídico de referencia
+
+En primer lugar, se realizó el estudio para el contig **ctg000001c**, asociado a la región circularizada del ensamblaje.
+
+![](tabla ctg1.png)
+Tras esto, se realizó el mismo análisis para el contig **ctg000002l**, asociado a la región anómala no circularizada detectada.
+
+![](tabla ctg2.png)
+
+Esta región, de un tamaño muy similar a la primera y cercano al esperable para el genoma plastídico podría ser fruto de un artefacto derivado del propio proceso de ensamblaje mediante Otak.
+
+
+## Estudio de identidad entre ensamblaje del genoma mitocondrial para *Moringa oleifera* y *Moringa stenopetala*
+
+Se llevó a cabo el análisis entre de identidad para los ensamblajes asociados a cada especie, esto empleando los archivos .fasta obtenidos en cada caso.
+
+![](tabla mito.png)
