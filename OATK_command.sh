@@ -1,0 +1,1 @@
+# oatk -k 1001 -c 30 -t 16 --nhmmscan /home/kubuntu/anaconda3/bin/nhmmscan -m /home/kubuntu/analysis/synology/Utilities/DBs/OatkDB/v20230210/angiosperm_mito.fam -p /home/kubuntu/analysis/synology/Utilities/DBs/OatkDB/v20230210/angiosperm_pltd.fam -o MORINGASTN/home/kubuntu/analysis/synology/M_oleifera_SRR34565303/SRR34565303.fastq.gz
